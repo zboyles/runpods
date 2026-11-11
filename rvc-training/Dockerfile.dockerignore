@@ -1,0 +1,4 @@
+# BuildKit reads this for rvc-training/Dockerfile: send only the worker.
+*
+!rvc-training/handler.py
+!rvc-training/start.sh
