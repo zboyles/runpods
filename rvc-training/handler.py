@@ -161,7 +161,10 @@ def do_train(job, inp: dict, log: list[str]) -> dict:
         raise ValueError(f"{name} has no checkpoints to resume from")
 
     set_precision(inp.get("precision", "fp32"))
-    cores = str(os.cpu_count() or 8)
+    # The host may report far more cores than the container gets (256 on a PRO 6000 box),
+    # and Applio rejects --cpu-cores above 64.
+    avail = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else (os.cpu_count() or 8)
+    cores = str(max(1, min(avail, 64)))
     t0 = time.time()
     if not resume:
         run([PY, "core.py", "preprocess", "--model-name", name, "--dataset-path", str(data_dir),
